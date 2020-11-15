@@ -37,7 +37,7 @@ export function renderMixin(Vue) {
       // 不需要维护堆栈，因为所有fns都被调用彼此分开
       // 修补父组件时，将调用嵌套组件的渲染fns
       currentRenderingInstance = vm
-      vnode.render.call(vm._renderProxy, vm.$createElement) // 生产环境下 vm._renderProxy  => 相当于vm
+      vnode.render.call(vm._renderProxy, vm.$createElement) // 生产环境下 vm._renderProxy  => 相当于vm, 开发环境
     } catch (e) {
       if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
         try {
@@ -60,7 +60,9 @@ export function renderMixin(Vue) {
 
     // 如果渲染函数出错，则返回空的vnode
     if (!(vnode instanceof VNode)) {
-      if (Array.isArray(vnode)) {
+      if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
+        // 如果vnode是个数组，就会返回多个vnode，
+        // 报错，返回一个空vnode节点
         console.error(
           'Multiple root nodes returned from function. Render function ' +
           'should return a single root node.'

@@ -13,7 +13,7 @@ export function initMixin(Vue) {
 
     // 如果不是生产环境，执行initProxy
     if (process.env.NODE_ENV !== 'production') {
-      initProxy(vm)
+      initProxy(vm) // 开发阶段
     } else {
       vm._renderProxy = vm // 生产环境下， vm._renderProxy = vm
     }
@@ -29,5 +29,5 @@ export function initMixin(Vue) {
 
 
 export function resolveConstructorOptions() {
-  
+
 }

@@ -49,6 +49,7 @@ if (hasProxy) {
 const hasHandler = {
   has(target, key) {
     const has = key in target
+    // 是全局方法、或者是私有方法，并且不在data里面
     const isAllowed = allowedGlobals(key) ||
       (typeof key === 'string' && key.charAt(0) === '_' && !(key in target.$data))
     if (!has && !isAllowed) {
@@ -71,7 +72,7 @@ const getHandler = {
 
 initProxy = function initProxy(vm) {
   if (hasProxy) {
-    // determine which proxy handler to use
+    // 确定要使用的代理处理程序
     const options = vm.$options
     const handlers = options.render && options.render._withStripped
       ? getHandler
