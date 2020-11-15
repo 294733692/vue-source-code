@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="/dist/umd/vue.js"></script>
+<script>
+  let vm = new Vue({
+    el: '#app',
+    template: `<div>{{userInfo.name}}</div>`,
+    data () {
+      return {
+        userInfo: {
+          name: 'yyc',
+          age: 25
+        }
+      }
+    }
+  })
+</script>
+</body>
+</html>
