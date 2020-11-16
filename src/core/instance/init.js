@@ -2,7 +2,7 @@
  * Vue初始化混合操作
  * @param options
  */
-export function initMixin (Vue) {
+export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this
     vm.$options = options
