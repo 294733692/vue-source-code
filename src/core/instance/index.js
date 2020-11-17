@@ -1,4 +1,5 @@
 import {initMixin} from "./init";
+import {renderMixin} from "./render";
 
 /**
  * 初始化Vue
@@ -9,6 +10,7 @@ function Vue(options) {
 }
 
 initMixin(Vue)
+renderMixin(Vue)
 
 
 export default Vue
