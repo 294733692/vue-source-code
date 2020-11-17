@@ -70,7 +70,6 @@ export default class VNode {
   }
 }
 
-
 /**
  * 创建空节点
  * @param text
@@ -95,7 +94,7 @@ export function createTextVNode(val) {
 // 优化浅克隆
 // 用于静态节点和插槽节点，因为他们可以在多个渲染中重复使用，
 // 克隆他们可以避免在DOM操作依赖它们的elm参考时出错
-export function cloneVNode(vnode: VNode): VNode {
+export function cloneVNode(vnode) {
   const cloned = new VNode(
     vnode.tag,
     vnode.data,
