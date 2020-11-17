@@ -1,4 +1,6 @@
 import {createEmptyVNode} from "../vdom/vnode";
+import {noop} from "../../shared/util";
+import Watcher from "../observer/watcher";
 
 export function mountComponent(vm, el, hydrating) {
   vm.$el = el
@@ -27,7 +29,7 @@ export function mountComponent(vm, el, hydrating) {
 
   if (vm.$vnode == null) {
     vm.isMounted = true
-    callHook(vm, 'mounted')
+    // callHook(vm, 'mounted')
   }
   return vm
 }
