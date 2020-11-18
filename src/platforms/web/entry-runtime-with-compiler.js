@@ -1,16 +1,17 @@
 import Vue from '../web/runtime/index'
 import {query} from "./util/index";
-import {cached} from "./util/cached";
+import {cached} from "../../core/util/index";
 
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
 
-// 记录原型上的$mount方法
+// 缓存原型上的$mount方法，该方法定义在 'src/platform/web/runtime/index.js'
 const mount = Vue.prototype.$mount
 
 // 重写$mount方法,这里hydrating暂时默认为false
+// 这里重写是为了compiler版本
 Vue.prototype.$mount = function (el, hydrating = false) {
   el = el && query(el)
 
@@ -21,12 +22,12 @@ Vue.prototype.$mount = function (el, hydrating = false) {
   }
 
   const options = this.$options // 缓存this.$options
-  // 将用户传入的template模板或者是el element转换成render函数，Vue渲染只认render函数
-  if (!options.render) {
+  // 将用户传入的template模板或者是el element转换成render函数，在2.0的版本中，Vue所有的组件都需要通过render方法来实现
+  if (!options.render) { // 判断是否定义了render方法
     let template = options.template
-    if (template) {
+    if (template) { // 判断是否定义了template
       if (typeof template === 'string') {
-        // 如果template传入的是 '#template',就去查找element元素
+        // 如果template传入的是 '#template',就去查找element元素，判断template第0位是否为"#"
         if (template.charAt(0) === '#') {
           template = idToTemplate(template)
           if (!template) { // 同query.el逻辑
