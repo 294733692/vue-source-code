@@ -2,7 +2,7 @@
   "name": "user_vue",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/platforms/web/entry-runtime-with-compiler.js",
   "scripts": {
     "build:dev": "rollup -c",
     "serve": "cross-env ENV=development rollup -c -w"
