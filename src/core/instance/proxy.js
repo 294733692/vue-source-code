@@ -1,5 +1,5 @@
 import {isNative, makeMap} from "../util/index";
-import config from '../../core/util/index'
+import config from '../../core/config'
 
 let initProxy
 

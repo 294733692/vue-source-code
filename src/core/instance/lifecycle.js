@@ -6,15 +6,16 @@ export function mountComponent(vm, el, hydrating) {
   vm.$el = el //缓存el
   if (!vm.$options.render) { // 没有render函数，也就是说，template没有正确转换成render函数
     vm.$options.render = createEmptyVNode // 创建一个空的VNode节点
-
-    if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
-      vm.$options.el || el) {
-      console.error(
-        'You ara using the runtime-only build of Vue where the template ' +
-        'compiler is ont available. Either pre-compiler the templates into ' +
-        'render functions, os use the compiler-included build.')
-    } else {
-      console.error('Failed to mount Component: template or render function ont defined.')
+    if (process.env.NODE_ENV !== 'production') {
+      if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
+        vm.$options.el || el) {
+        console.error(
+          'You ara using the runtime-only build of Vue where the template ' +
+          'compiler is ont available. Either pre-compiler the templates into ' +
+          'render functions, os use the compiler-included build.')
+      } else {
+        console.error('Failed to mount Component: template or render function ont defined.')
+      }
     }
   }
 

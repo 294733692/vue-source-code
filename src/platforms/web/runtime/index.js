@@ -1,5 +1,5 @@
 import Vue from '../../../core/instance/index'
-import {query} from "../util";
+import {query} from "../util/index";
 import {mountComponent} from "../../../core/instance/lifecycle";
 import {inBrowser} from '../../../core/util/index'
 

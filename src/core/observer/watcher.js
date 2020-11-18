@@ -17,6 +17,8 @@ export default class Watcher {
   sync = false
   dirty = false
   active = false
+
+  // diff算法相关
   deps = []
   newDeps = []
   deps
@@ -84,7 +86,7 @@ export default class Watcher {
     let value
     const vm = this.vm
     try {
-      value = this.getter.call(vm, vm)
+      value = this.getter.call(vm, vm)  // 这里实际执行的lifecycle => updateComponent方法
     } catch (e) {
       if (this.user) {
         console.error(`getter for watcher "${this.expression}"`)

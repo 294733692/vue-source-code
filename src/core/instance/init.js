@@ -11,7 +11,12 @@ export function initMixin(Vue) {
     vm.$options = options
 
 
-    initProxy(vm)
+    // 如果不是生产环境，执行initProxy
+    if (process.env.NODE_ENV !== 'production') {
+      initProxy(vm)
+    } else {
+      vm._renderProxy = vm // 生产环境下， vm._renderProxy = vm
+    }
     // 初始化render
     initRender(vm)
 

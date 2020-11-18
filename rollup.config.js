@@ -1,5 +1,7 @@
 import babel from 'rollup-plugin-babel'
 import serve from 'rollup-plugin-serve'
+import replace from 'rollup-plugin-replace'
+
 
 export default {
   input: './src/platforms/web/entry-runtime-with-compiler.js', // 打包文件入口
@@ -13,11 +15,14 @@ export default {
     babel({
       exclude: 'node_modules/**', // 忽略打包node_module模块下的问题
     }),
-    process.env.ENV === 'development' ? serve({
+    process.env.ENV === 'production' ? serve({
       open: true,
       openPage: "/public/index.html", // 开启服务，默认打开的文件路径
       port: 3000,
       contentBase: '', // 配置提供额外静态文件内容的目录
-    }) : ''
+    }) : '',
+    replace({
+      'process.env.NODE_ENV': JSON.stringify(process.env.ENV)
+    })
   ]
 }

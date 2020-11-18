@@ -37,7 +37,7 @@ export default class VNode {
     text,
     elm,
     context,
-    componetsOptions,
+    componentOptions,
     asyncFactory
   ) {
     this.tag = tag

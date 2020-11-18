@@ -39,13 +39,14 @@ export function renderMixin(Vue) {
       currentRenderingInstance = vm
       vnode.render.call(vm._renderProxy, vm.$createElement) // 生产环境下 vm._renderProxy  => 相当于vm
     } catch (e) {
-      if (vm.$options.renderError) {
+      if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
         try {
           vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e)
         } catch (e) {
           vnode = vm._vnode
         }
       } else {
+        console.error('renderError');
         vnode = vm._vnode
       }
     } finally {

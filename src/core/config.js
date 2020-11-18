@@ -5,7 +5,7 @@ import {
   identity
 } from '../shared/util'
 
-export const Config = {
+const Config = {
   // user
   optionMergeStrategies: Object.create(null), // 选项合并策略 （用于合并 core/util/options）
   silent: false, // 是否取消警告.
@@ -31,3 +31,5 @@ export const Config = {
   // legacy
   _lifecycleHooks: LIFECYCLE_HOOKS, // 由于遗留原因而暴露
 };
+
+export default Config
