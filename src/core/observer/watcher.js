@@ -99,4 +99,10 @@ export default class Watcher {
     }
     return value
   }
+
+  /**
+   * 清除依赖集合
+   */
+  cleanupDeps() {
+  }
 }
