@@ -26,3 +26,8 @@ export function initMixin(Vue) {
     }
   }
 }
+
+
+export function resolveConstructorOptions() {
+  
+}
