@@ -38,7 +38,53 @@ function isTextNode(node) {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
 
+/**
+ * 将children扁平成一维数组
+ */
 function normalizeArrayChildren(children, nestedIndex) {
   const res = []
+  let i, c, lastIndex, last
+  for (i = 0; i < children.length; i++) {
+    c = children[i]
+    if (isUndef(c) || typeof c === 'boolean') continue
+    lastIndex = res.length - 1
+    last = res[lastIndex]
+    // 嵌套的
+    if (Array.isArray(c)) {
+      if (c.length > 0) {
+        c = normalizeArrayChildren(c, `${nestedIndex || ''}_${i}`)
+        // 合并相邻文本节点，如果当前节点和下一次节点都是文本节点，把这两个节点合并到一个节点里面
+        if (isTextNode(c[0]) && isTextNode(last)) {
+          res[lastIndex] = createTextVNode(last.text + c[0].text)
+          c.shift()
+        }
+        res.push.apply(res, c)
+      }
+    } else if (isPrimitive(c)) { // 判断是否是基础类型
+      if (isTextNode(last)) { // 是否是文本节点
+        // 合并相邻的文本节点
+        // 这里对ssr化必要的，因为文本节点在呈现为HTML字符串实质上已合并
+        res[lastIndex] = children(lastIndex.text + c)
+      } else if (c !== '') {
+        // 转化为vnode节点
+        res.push(createTextVNode(c))
+      }
+    } else {
+      // 正常VNode
+      if (isTextNode(c) && isTextNode(last)) {
+        // 合并相邻文本节点
+        res[lastIndex] = createTextVNode(last.text + c.text)
+      } else {
+        // 嵌套数组子集的默认键(比如v-for生成的)
+        if (isTrue(children._isVList) &&
+          isDef(c.tag) &&
+          isUndef(c.key) &&
+          isDef(nestedIndex)) {
+          c.key = `__vlist${nestedIndex}_${i}__`
+        }
+        res.push(c)
+      }
+    }
+  }
   return res
 }

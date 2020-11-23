@@ -12,17 +12,20 @@ import {createComponent} from "./create-component";
 const SIMPLE_NORMALIZE = 1
 const ALWAYS_NORMALIZE = 2
 
+/**
+ * createElement参数处理
+ */
 export function createElement(
   context, // vm实例
   tag, // VNode标签
   data, // VNode的data
   children, // VNode的子节点也可以说是子VNode
-  normalizationType,
+  normalizationType, // 根据这个的类型 来处理children
   alwaysNormalize
 ) {
   // 检测data的类型，通过判断data是不是数组或者是不是基本类型，来判断data是否传入，
   // 如果满足条件，说明data没有传入，传入的第三个参数是children
-  // 那么将所有参数前移
+  // 那么将所有参数前移，规范参数处理
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
@@ -71,7 +74,7 @@ export function _createElement(
     }
   }
 
-  // 支持单功能子级作为默认作用域插槽
+  // 支持单功能子级作为默认作用域插槽 TODO 暂时忽略
   if (Array.isArray(children)
     && typeof children[0] === 'function') {
     data = data || {}
@@ -87,11 +90,13 @@ export function _createElement(
   }
 
   let vnode, ns
+  // tag可能是字符串，也可能是组件形式
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns || config.getTagNamespace(tag))
     if (config.isReservedTag(tag)) { // 判断是否是保留标签
-      // 平台内置元素
+      // 判断tag是否是html的原生标签
+      // 是就创建一个平台保留标签的VNode
       if (process.env._NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn)) {
         `the .native modifier for v-on is only valid on components but it was used on <${tag}>.`
       }
@@ -101,11 +106,12 @@ export function _createElement(
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'conponents', tag))) {
       // component
+      // 如果是组件，创建组件VNode
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // 未知或未列出的命名空间元素
       // 在运行时检查，因为它可能会在其他运行时分配一个名称空间
-      // 父级规范子集
+      // 父级规范子集，如果是未识别的标签（类似于组定义组件这种，el-input这种），创建VNdode
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context
