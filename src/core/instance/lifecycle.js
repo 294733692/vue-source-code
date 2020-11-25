@@ -2,6 +2,50 @@ import {createEmptyVNode} from "../vdom/vnode";
 import {noop} from "../../shared/util";
 import Watcher from "../observer/watcher";
 
+export let activeInstance = null
+export let isUpdatingChildComponent = false
+
+export function setActiveInstance(vm) {
+  const prevActiveInstance = activeInstance
+  activeInstance = vm
+  return () => {
+    activeInstance = prevActiveInstance
+  }
+}
+
+export function lifecycleMixin(Vue) {
+  Vue.prototype._update = function (vnode, hydrating) {
+    // 数据更新时要用到的参数
+    const vm = this
+    const prevEl = vm.$el
+    const prevVnode = vm._vnode // 首次渲染的时候为空
+    const restoreActiveInstance = setActiveInstance(vm)
+    vm._vnode = vnode
+    // Vue.prototype.__patch__ 根据所使用的渲染后端注入入口点
+    if (!prevVnode) {
+      // 初始化渲染，首次渲染会走这个方法， vm.__patch__为核心
+      // vm.$el 是真实DOM，vnode是vm._render生成的watcher Dom
+      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
+    } else {
+      // 更新
+      vm.$el = vm.__patch__(prevVnode, vnode)
+    }
+    restoreActiveInstance()
+    // 更新 __vue__
+    if (prevEl) {
+      prevEl.__vue__ = null
+    }
+    if (vm.$el) {
+      vm.$el.__vue__ = vm
+    }
+    // 如果父级是HOC，则也更新其$el
+    if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+      vm.$parent.$el = vm.$el
+    }
+    // 调度程序将调用更新的钩子，以确保子进程处于在父母的更新钩子中更新
+  }
+}
+
 export function mountComponent(vm, el, hydrating) {
   vm.$el = el //缓存el
   if (!vm.$options.render) { // 没有render函数，也就是说，template没有正确转换成render函数
@@ -22,7 +66,7 @@ export function mountComponent(vm, el, hydrating) {
   let updateComponent
   updateComponent = () => {
     // 先调用vm._render方法生成虚拟Node，
-    // vm._update更新DOM
+    // vm._update更新DOM,核心方法就是Vue.__patch__
     vm._update(vm._render(), hydrating)
   }
 
