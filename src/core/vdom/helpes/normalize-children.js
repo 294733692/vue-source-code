@@ -21,7 +21,7 @@ export function simpleNormalizeChildren(children) {
 // 2.当子级包含始终生成嵌套数组的构造时，
 // 例如 <template>，<slot>，v-for或用户提供子代时
 // 带有手写的渲染功能/ JSX。 在这种情况下，完全归一化
-// 需要满足所有可能类型的儿童价值观。
+// 需要满足所有可能类型的子类型值。
 export function normalizeChildren(children) {
   return isPrimitive(children)
     ? [createTextVNode(children)]

@@ -83,6 +83,7 @@ export function _createElement(
   }
 
   // 根据normalizationType的类型来处理children
+  // 将children拍平成一维数组进行处理
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
