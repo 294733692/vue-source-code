@@ -1,5 +1,5 @@
 /**
- * DOM操作函数
+ * DOM相关的操作函数
  */
 import {namespaceMap} from "../util/element";
 

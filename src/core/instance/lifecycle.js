@@ -17,6 +17,7 @@ export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode, hydrating) {
     // 数据更新时要用到的参数
     const vm = this
+    // 数据更新时的参数
     const prevEl = vm.$el
     const prevVnode = vm._vnode // 首次渲染的时候为空
     const restoreActiveInstance = setActiveInstance(vm)

@@ -143,6 +143,7 @@ export function createPatchFunction(backend) {
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
       // 先处理子节点，然后插入到父节点上
+      // 这里执行的createChildren，然后递归调用createElement，所以createChildren的insert会先执行
       createChildren(vnode, children, insertedVnodeQueue)
       if (isDef(data)) {
         invokeCreateHooks(vnode, insertedVnodeQueue)
@@ -465,7 +466,7 @@ export function createPatchFunction(backend) {
     }
 
     if (isDef(vnode.elm) && isDef(ownerArray)) {
-      // clone reused vnode
+      // 克隆重用的vnode节点
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
@@ -480,10 +481,10 @@ export function createPatchFunction(backend) {
       return
     }
 
-    // reuse element for static trees.
-    // note we only do this if the vnode is cloned -
-    // if the new node is not cloned it means the render functions have been
-    // reset by the hot-reload-api and we need to do a proper re-render.
+    // 静态树的重用元素.
+    // 需要注意的是，我们仅在克隆了vnode时执行了此操作 -
+    // 如果没有克隆节点，那表明渲染功能由 hot-reload-api重置。
+    // 我们需要进行适当的重新渲染
     if (isTrue(vnode.isStatic) &&
       isTrue(oldVnode.isStatic) &&
       vnode.key === oldVnode.key &&
@@ -540,13 +541,13 @@ export function createPatchFunction(backend) {
   }
 
   let hydrationBailed = false
-  // list of modules that can skip create hook during hydration because they
-  // are already rendered on the client or has no need for initialization
-  // Note: style is excluded because it relies on initial clone for future
+  // list of modules that can skip create hook during hydration
+  // 因为他们已经在客户端被呈现或不需要初始化
+  // Note: 样式被排除，因为它依赖将来的初始克隆
   // deep updates (#7063).
   const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
 
-  // Note: this is a browser-only function so we can assume elms are DOM nodes.
+  // Note: 这是一个仅用于浏览器的功能，因此我们可以假设elms是dom节点
   function hydrate(elm, vnode, insertedVnodeQueue, inVPre) {
     let i
     const {tag, data, children} = vnode
