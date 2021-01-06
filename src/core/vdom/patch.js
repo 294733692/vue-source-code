@@ -38,6 +38,8 @@ export function createPatchFunction(backend) {
   let i, j
   const cbs = {}
 
+  // modules：相关钩子函数集合
+  // nodeOps：相关DOM操作函数集合
   const {modules, nodeOps} = backend
 
   // 匹配到上面的hook里面的钩子，
@@ -51,6 +53,9 @@ export function createPatchFunction(backend) {
     }
   }
 
+  /**
+   * 将真实Dom转化为vnode
+   */
   function emptyNodeAt(elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -142,8 +147,10 @@ export function createPatchFunction(backend) {
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
+      setScope(vnode)
+      
       // 先处理子节点，然后插入到父节点上
-      // 这里执行的createChildren，然后递归调用createElement，所以createChildren的insert会先执行
+      // 这里执行的createChildren，然后递归调用createEle，所以createChildren的insert会先执行
       createChildren(vnode, children, insertedVnodeQueue)
       if (isDef(data)) {
         invokeCreateHooks(vnode, insertedVnodeQueue)
