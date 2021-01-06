@@ -6,18 +6,20 @@ import {createFunctionalComponent} from "./create-functional-component";
 
 
 export function createComponent(
-  Ctor,
+  Ctor, // 组件
   data,
-  context,
-  children,
+  context, // 上下文，当前vm实例
+  children, // 组件子vnode
   tag
 ) {
   if (isUndef(Ctor)) {
     return
   }
+  // 在initGlobal(Vue)，context.$options._base = Vue
   const baseCtor = context.$options._base
 
   // 纯选项对象：将其转换为构造函数
+  // 通过vue.extend方法转换成构造函数
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
