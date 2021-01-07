@@ -1,6 +1,6 @@
-import {createEmptyVNode} from "../vdom/vnode";
-import {noop} from "../../shared/util";
-import Watcher from "../observer/watcher";
+import {createEmptyVNode} from "../vdom/vnode"
+import {noop} from "../../shared/util"
+import Watcher from "../observer/watcher"
 
 export let activeInstance = null
 export let isUpdatingChildComponent = false
@@ -83,4 +83,77 @@ export function mountComponent(vm, el, hydrating) {
     // callHook(vm, 'mounted') // 执行mounted函数
   }
   return vm
+}
+
+
+/**
+ * 更新子组件
+ * @param vm
+ * @param propsData
+ * @param listeners
+ * @param parentVnode
+ * @param renderChildren
+ */
+export function updateChildComponent(vm, propsData, listeners, parentVnode, renderChildren) {
+  if (process.env.NODE_ENV !== 'production') {
+    isUpdatingChildComponent = true
+  }
+
+  // 确定组件是否具有插槽子级
+  // 我们需要覆盖$options._renderChildren之前执行此操作
+
+  // 检查是否有动态scopedSlots(手写或编译，但带有动态广告位名称)
+  // 从模板编译的静态作用域插槽具有稳定的"$stable"标记
+
+}
+
+
+function isInInactiveTree(vm) {
+  while (vm && (vm = vm.$parent)) {
+    if (vm._inactive) return false
+  }
+  return false
+}
+
+export function activateChildComponent(vm, direct) {
+  if (direct) {
+    vm._directInactive = false
+    if (isInInactiveTree(vm)) {
+      return
+    }
+  } else if (vm._directInactive) {
+    return
+  }
+  if (vm._inavtive || vm._inactive === null) {
+    vm._inavtive = false
+    for (let i = 0; i < vm.$children.length; i++) {
+      activateChildComponent(vm.$children[i])
+    }
+    callHook(vm, 'activated')
+  }
+}
+
+export function deactivateChildComponent(vm, direct) {
+  if (direct) {
+    vm._directInactive = true
+    if (isInInactiveTree(vm)) {
+      return
+    }
+  }
+  if (!vm._inactive) {
+    vm._inactive = true
+    for (let i = 0; i < vm.$children.length; i++) {
+      deactivateChildComponent(vm.$children[i])
+    }
+    callHook(vm, 'deactivated')
+  }
+}
+
+/**
+ * 检查用户自定义钩子函数，并执行对应的钩子函数
+ * @param vm
+ * @param hook
+ */
+export function callHook(vm, hook) {
+
 }

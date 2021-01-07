@@ -1,5 +1,5 @@
 import {ASSET_TYPES} from "../../shared/constants"
-import {margeOptions, validateComponentName} from "../util/index"
+import {mergeOptions, validateComponentName} from "../util/index"
 import {proxy} from "../instance/state"
 
 
@@ -14,27 +14,34 @@ export function initExtend(Vue) {
 
   /**
    * 继承类
+   * 采用原型继承，返回一个子构造器
    */
   Vue.extend = function (extendOptions) {
     extendOptions = extendOptions || {}
-    const Super = this
-    const SuperId = Super.cid
+    const Super = this // this指向Vue
+    const SuperId = Super.cid // 这里是Vue.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
+    // 如果进来发现SuperId相同，说明他们是继承同一个父类构造器来的
+    // 这里做了缓存优化
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
 
+    // 定义组件name
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
     }
-    const sub = function VueComponent(options) {
+
+    // 定义子构造函数，实际上就是调用Vue._init()
+    const Sub = function VueComponent(options) {
       this._init(options)
     }
+    // 简单的原型继承
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
-    Sub.options = margeOptions(
+    Sub.options = mergeOptions(
       Super.options,
       extendOptions
     )
@@ -70,7 +77,7 @@ export function initExtend(Vue) {
     Sub.extendOptions = extendOptions
     Sub.sealedOptions = extend({}, Sub.options)
 
-    // 缓存构造函数
+    // 缓存构造函数，
     cachedCtors[SuperId] = Sub
     return Sub
   }

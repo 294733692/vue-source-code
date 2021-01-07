@@ -156,7 +156,7 @@ export function validateComponentName(name) {
  * @param child 子级
  * @param vm vm实例
  */
-export function margeOptions(
+export function mergeOptions(
   parent,
   child,
   vm
@@ -175,15 +175,15 @@ export function margeOptions(
   normalizeDirectives(child) // 规范自定义指定
 
   // 在子选项上应用扩展和混合
-  // 单仅当它是原始选项对象而不是另一个margeOptions调用的结果时。
+  // 单仅当它是原始选项对象而不是另一个mergeOptions调用的结果时。
   // 仅合并的选项具有_base属性
   if (!child._base) {
     if (child.extends) {
-      parent = margeOptions(parent, child.entends, vm)
+      parent = mergeOptions(parent, child.entends, vm)
     }
     if (child.mixins) {
       for (let i = 0, l = child.mixins.length; i < l; i++) {
-        parent = margeOptions(parent, child.mixins[i], vm)
+        parent = mergeOptions(parent, child.mixins[i], vm)
       }
     }
   }

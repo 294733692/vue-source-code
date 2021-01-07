@@ -1,9 +1,79 @@
-import {isDef, isObject, isTrue, isUndef} from "../../shared/util";
-import {createAsyncPlaceholder, resolveAsyncComponent} from "./helpes/resolve-async-component";
-import {resolveConstructorOptions} from "../instance/init";
-import {extractPropsFromVNodeData} from "./helpes/extract-props";
-import {createFunctionalComponent} from "./create-functional-component";
+import {isDef, isObject, isTrue, isUndef} from "../../shared/util"
+import {createAsyncPlaceholder, resolveAsyncComponent} from "./helpes/resolve-async-component"
+import {resolveConstructorOptions} from "../instance/init"
+import {extractPropsFromVNodeData} from "./helpes/extract-props"
+import {createFunctionalComponent} from "./create-functional-component"
+import {
+  activateChildComponent,
+  activeInstance,
+  callHook, deactivateChildComponent,
+  updateChildComponent
+} from "../instance/lifecycle"
+import {queueActivatedComponent} from "../observer/scheduler"
 
+
+// 修补期间在组件VNode上调用内联挂钩
+const componentVNodeHooks = {
+  init(vnode, hydrating) {
+    if (
+      vnode.componentInstance &&
+      !vnode.componentInstance._isDestroyed &&
+      vnode.data.keepalive
+    ) {
+      // 保持活动的组件，视为补丁
+      const mountedNode = vnode // 绕流工作
+      componentVNodeHooks.prepatch(mountedNode, mountedNode)
+    } else {
+      const child = vnode.componentInstance = createComponentInstanceForVnode(vnode, activeInstance)
+      child.$mount(hydrating ? vnode.elm : undefined, hydrating)
+    }
+  },
+
+  prepatch(oldVnode, vnode) {
+    const options = vnode.componentOptions
+    const child = vnode.componentInstance = oldVnode.componentInstance
+
+    updateChildComponent(
+      child,
+      options.propsData, // update props
+      options.listeners, // update listeners
+      vnode, // new parent vnode
+      options.children // new children
+    )
+  },
+
+  insert(vnode) {
+    const {context, componentInstance} = vnode
+    if (!componentInstance._isMounted) {
+      componentInstance._isMounted = true
+      callHook(componentInstance, 'mounted')
+    }
+    if (vnode.data.keepalive) {
+      if (context._isMounted) {
+        // 在更新期间，保持活动的组件的子组件可能会更改
+        // 因此直接在此处运行tree，可能错误的children 使用激活钩子
+        // 相反，我们将他们推入队列，整个修补过程结束后对其进行处理
+        queueActivatedComponent(componentInstance)
+      } else {
+        activateChildComponent(componentInstance, true /* direct */)
+      }
+    }
+  },
+
+  destroy(vnode) {
+    const {componentInstance} = vnode
+    if (!componentInstance._isDestroyed) {
+      if (!vnode.data.keepalive) {
+        componentInstance.$destroy()
+      } else {
+        deactivateChildComponent(componentInstance, true /* direct */)
+      }
+    }
+  }
+}
+
+
+const hooksToMerge = Object.keys(componentVNodeHooks)
 
 export function createComponent(
   Ctor, // 组件
@@ -16,10 +86,11 @@ export function createComponent(
     return
   }
   // 在initGlobal(Vue)，context.$options._base = Vue
+  // 基类构造器，就是一个Vue
   const baseCtor = context.$options._base
 
-  // 纯选项对象：将其转换为构造函数
-  // 通过vue.extend方法转换成构造函数
+  // 纯选项对象：将其转换为构造函数/器
+  // 通过vue.extend方法转换成构造函数/器
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
@@ -89,14 +160,15 @@ export function createComponent(
   }
 
   // 将组件管理挂钩安装到占位符节点上
-  // installComponentHooks(data)
+  installComponentHooks(data)
 
   // 返回占位符节点
+  // 注意：组件的children是为空的
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
-    { Ctor, propsData, listeners, tag, children },
+    {Ctor, propsData, listeners, tag, children},
     asyncFactory
   )
 
@@ -124,4 +196,42 @@ function transformModel(options, data) {
   } else {
     on[event] = callback
   }
+}
+
+
+export function installComponentHooks(data) {
+  const hooks = data.hook || (data.hook = {})
+  for (let i = 0; i < hooksToMerge.length; i++) {
+    const key = hooksToMerge[i]
+    const existing = hooks[key]
+    const toMerge = componentVNodeHooks[key]
+    if (existing !== toMerge && !(existing && existing._merged)) {
+      hooks[key] = existing ? mergeHook(toMerge, existing) : toMerge
+    }
+  }
+}
+
+function mergeHook() {
+  const merged = (a, b) => {
+    f1(a, b)
+    f2(a, b)
+  }
+  merged._merged = true
+  return merged
+}
+
+export function createComponentInstanceForVnode(vnode, parent) {
+  const options = {
+    _isComponent: true,
+    _parentVnode: vnode,
+    parent
+  }
+
+  // 检查 inline-template 渲染方法
+  const inlineTemplate = vnode.data.inlineTemplate
+  if (isDef(inlineTemplate)) {
+    options.render = inlineTemplate.render
+    options.staticRenderFns = inlineTemplate.staticRenderFns
+  }
+  return new vnode.componentOptions.Ctor(options)
 }
