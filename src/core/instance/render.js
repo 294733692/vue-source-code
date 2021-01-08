@@ -1,7 +1,8 @@
-import VNode, {createEmptyVNode} from "../vdom/vnode";
-import {resolveSlots} from "./render-helpers/resolve-slots";
-import {emptyObject} from "../util/index";
-import {createElement} from "../vdom/create-element";
+import VNode, {createEmptyVNode} from "../vdom/vnode"
+import {resolveSlots} from "./render-helpers/resolve-slots"
+import {emptyObject} from "../util/index"
+import {createElement} from "../vdom/create-element"
+import {normalizeScopedSlots} from "../vdom/helpes/normalize-scoped-slots"
 
 export let currentRenderingInstance
 
@@ -30,6 +31,14 @@ export function renderMixin(Vue) {
     const vm = this
     const {render, _parentVnode} = vm.$options
 
+    if (_parentVnode) {
+      vm.$scopedSlots = normalizeScopedSlots(
+        _parentVnode.data.scopedSolts,
+        vm.$slots,
+        vm.$scopedSlots
+      )
+    }
+
     vm.$vnode = _parentVnode
     // render self
     let vnode
@@ -46,7 +55,7 @@ export function renderMixin(Vue) {
           vnode = vm._vnode
         }
       } else {
-        console.error('renderError');
+        console.error('renderError')
         vnode = vm._vnode
       }
     } finally {

@@ -148,7 +148,7 @@ export function createPatchFunction(backend) {
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
       setScope(vnode)
-      
+
       // 先处理子节点，然后插入到父节点上
       // 这里执行的createChildren，然后递归调用createEle，所以createChildren的insert会先执行
       createChildren(vnode, children, insertedVnodeQueue)
@@ -184,6 +184,7 @@ export function createPatchFunction(backend) {
       // 在这种情况下,我们只需要返回该element就可以了
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
+        // insert插入顺序是先子后父
         insert(parentElm, vnode, elm, refElm)
 
         if (isTrue(isReactivated)) {

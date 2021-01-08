@@ -2,7 +2,7 @@ import {createEmptyVNode} from "../vdom/vnode"
 import {noop} from "../../shared/util"
 import Watcher from "../observer/watcher"
 
-export let activeInstance = null
+export let activeInstance = null // 为当前激活组件的vm实例
 export let isUpdatingChildComponent = false
 
 export function setActiveInstance(vm) {
@@ -13,6 +13,35 @@ export function setActiveInstance(vm) {
   }
 }
 
+/**
+ * 建立父子组件关系
+ */
+export function initLifecycle(vm) {
+  const options = vm.$options // 这里的vm是子组件的vm
+
+  let parent = options.parent // 这里是vm的父组件
+  if (parent && !options.abstract) {
+    while (parent.$options.abstract && parent.$parent) {
+      parent = parent.$parent
+    }
+    parent.$children.push(vm)
+  }
+
+  // 建立父子组件关系
+  vm.$parent = parent
+  vm.$root = parent ? parent.$root : vm
+
+  vm.$children = []
+  vm.$refs = {}
+
+  vm._watcher = null
+  vm._inactive = null
+  vm._directInactive = false
+  vm._isMounted = false
+  vm._isDestroyed = false
+  vm._isBeingDestroyed = false
+}
+
 export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode, hydrating) {
     // 数据更新时要用到的参数
@@ -21,6 +50,9 @@ export function lifecycleMixin(Vue) {
     const prevEl = vm.$el
     const prevVnode = vm._vnode // 首次渲染的时候为空
     const restoreActiveInstance = setActiveInstance(vm)
+    // vm.$vnode 和 vm._vnode是父子关系
+    // vm._vnode是组件的渲染vnode
+    // vm.$vnode为组件的占位vnode
     vm._vnode = vnode
     // Vue.prototype.__patch__ 根据所使用的渲染后端注入入口点
     if (!prevVnode) {

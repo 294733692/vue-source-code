@@ -24,7 +24,11 @@ const componentVNodeHooks = {
       const mountedNode = vnode // 绕流工作
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
-      const child = vnode.componentInstance = createComponentInstanceForVnode(vnode, activeInstance)
+      const child = vnode.componentInstance = // 返回子组件的vnode实例
+        createComponentInstanceForVnode(
+          vnode,
+          activeInstance
+        )
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -219,10 +223,14 @@ function mergeHook() {
   return merged
 }
 
+/**
+ * @param vnode 组件vnode
+ * @param parent 当前vm的实例
+ */
 export function createComponentInstanceForVnode(vnode, parent) {
   const options = {
     _isComponent: true,
-    _parentVnode: vnode,
+    _parentVnode: vnode, // 组件vnode，将位vnode
     parent
   }
 
@@ -232,5 +240,6 @@ export function createComponentInstanceForVnode(vnode, parent) {
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 这里执行extend函数里面的Super，也就是构造函数，相当于执行Vue._init(options)
   return new vnode.componentOptions.Ctor(options)
 }
