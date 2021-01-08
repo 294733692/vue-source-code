@@ -176,8 +176,7 @@ export function createComponent(
 }
 
 
-// 将组件v模型信息（值和回调）转换为
-// 道具和事件处理程序。
+// 将组件v-model信息（值和回调）转换为道具和事件处理程序。
 function transformModel(options, data) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'
