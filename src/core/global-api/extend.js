@@ -1,6 +1,6 @@
 import {ASSET_TYPES} from "../../shared/constants"
 import {mergeOptions, validateComponentName} from "../util/index"
-import {proxy} from "../instance/state"
+import {defineComputed, proxy} from "../instance/state"
 
 
 export function initExtend(Vue) {
@@ -93,6 +93,6 @@ function initProps(Comp) {
 function initComputed(Comp) {
   const computed = Comp.options.computed
   for (const key in computed) {
-
+    defineComputed(Comp.prototype, key, computed[key])
   }
 }

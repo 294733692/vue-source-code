@@ -1,6 +1,7 @@
 import {initRender} from "./render"
 import {initProxy} from "./proxy"
 import {initLifecycle} from "./lifecycle"
+import {mergeOptions} from "../util"
 
 /**
  * Vue初始化混合操作
@@ -9,13 +10,18 @@ import {initLifecycle} from "./lifecycle"
 export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this
-    vm.$options = options
 
     // merge options
     if (options && options._isComponent) {
       // 优化内部组件实例化，因为动态选项合并非常的慢
       // 并且没有内部组件选项需要特殊处理
       initInternalComponent(vm, options)
+    } else {
+      vm.$options = mergeOptions(
+        resolveConstructorOptions(vm.constructor),
+        options || {},
+        vm
+      )
     }
 
     // 如果不是生产环境，执行initProxy

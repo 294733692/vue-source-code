@@ -164,10 +164,11 @@ export function createComponent(
   }
 
   // 将组件管理挂钩安装到占位符节点上
+  // 安装组件钩子函数
   installComponentHooks(data)
 
-  // 返回占位符节点
-  // 注意：组件的children是为空的
+  // 返回占位符节点,生成组件vnode
+  // 注意：组件的children是为空的，组价相关参数都在"componentOptions里面"
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
@@ -214,7 +215,8 @@ export function installComponentHooks(data) {
   }
 }
 
-function mergeHook() {
+// 就是在最终执行的时候，依次执行这两个钩子函数
+function mergeHook(f1, f2) {
   const merged = (a, b) => {
     f1(a, b)
     f2(a, b)
