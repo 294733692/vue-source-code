@@ -39,6 +39,7 @@ export function renderMixin(Vue) {
       )
     }
 
+    // 占位符vnode
     vm.$vnode = _parentVnode
     // render self
     let vnode

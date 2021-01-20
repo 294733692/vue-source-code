@@ -1,7 +1,7 @@
 import {initRender} from "./render"
 import {initProxy} from "./proxy"
 import {initLifecycle} from "./lifecycle"
-import {mergeOptions} from "../util"
+import {extend, mergeOptions} from "../util"
 
 /**
  * Vue初始化混合操作
@@ -32,6 +32,8 @@ export function initMixin(Vue) {
     }
     // 初始化render
     vm._self = vm
+
+    // 初始化父子组件关系
     initLifecycle(vm)
     initRender(vm)
 
@@ -43,12 +45,8 @@ export function initMixin(Vue) {
   }
 }
 
-
-export function resolveConstructorOptions() {
-
-}
-
 export function initInternalComponent(vm, options) {
+  // 把之前通过 createComponentInstanceForVnode 函数传入的几个参数合并到内部的选项 $options 里
   const opts = vm.$options = Object.create(vm.constructor.options)
   // 这样做是因为比动态枚举要快
   const parentVnode = options._parentVnode
@@ -65,4 +63,51 @@ export function initInternalComponent(vm, options) {
     opts.render = options.render
     opts.staticRenderFns = options.staticRenderFns
   }
+}
+
+/**
+ * 解析构造函数选项
+ * @param Ctor
+ * @returns {*|{}|{parent, _parentVnode, _isComponent}}
+ */
+export function resolveConstructorOptions(Ctor) {
+  let options = Ctor.options
+  if (Ctor.super) {
+    const superOptions = resolveConstructorOptions(Ctor.super)
+    const cacheSuperOptions = Ctor.superOptions
+    if (superOptions !== cacheSuperOptions) {
+      // super options changed
+      // 需要分析新的options
+      Ctor.superOptions = superOptions
+      // 检查他们是否有后期的有改或附加选项
+      const modifiedOptions = resolveModifiedOptions(Ctor)
+      // update base extend options
+      if (modifiedOptions) {
+        extend(Ctor.extendOptions, modifiedOptions)
+      }
+      options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
+      if (options.name) {
+        options.components[options.name] = Ctor
+      }
+    }
+  }
+  return options
+}
+
+/**
+ * 解决修改的选项
+ * @param Ctor
+ * @returns {{}}
+ */
+function resolveModifiedOptions(Ctor) {
+  let modified
+  const latest = Ctor.options
+  const sealed = Ctor.sealedOptions
+  for (const key in latest) {
+    if (latest[key] !== sealed[key]) {
+      if (!modified) modified = {}
+      modified[key] = latest[key]
+    }
+  }
+  return modified
 }

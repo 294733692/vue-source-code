@@ -137,7 +137,7 @@ export function createPatchFunction(backend) {
         if (isUnknownElement(vnode, creatingEleInVPre)) {
           console.error(
             'Unknown custom element: <' + tag + '> - did you ' +
-            'register the component correcly? For recursive components, ' +
+            'register the component correctly? For recursive components, ' +
             'make sure to provide the "name" option.',
             vnode.context
           )

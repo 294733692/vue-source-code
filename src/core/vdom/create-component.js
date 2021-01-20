@@ -232,8 +232,8 @@ function mergeHook(f1, f2) {
 export function createComponentInstanceForVnode(vnode, parent) {
   const options = {
     _isComponent: true,
-    _parentVnode: vnode, // 组件vnode，将位vnode
-    parent
+    _parentVnode: vnode, // 组件vnode，占位符vnode
+    parent // 当前vnode的实例
   }
 
   // 检查 inline-template 渲染方法

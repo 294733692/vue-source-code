@@ -22,7 +22,8 @@ Vue.prototype.$mount = function (el, hydrating = false) {
   }
 
   const options = this.$options // 缓存this.$options
-  // 将用户传入的template模板或者是el element转换成render函数，在2.0的版本中，Vue所有的组件都需要通过render方法来实现
+  // 1、将用户传入的template模板或者是el element转换成render函数，在2.0的版本中，Vue所有的组件都需要通过render方法来实现
+  // 2、组件在编译的过程中，就会生成render方法
   if (!options.render) { // 判断是否定义了render方法
     let template = options.template
     if (template) { // 判断是否定义了template
