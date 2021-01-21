@@ -6,7 +6,16 @@ import {
   isPlainObject,
   toRawType
 } from "../../shared/util"
+import config from '../config'
 import {unicodeRegExp} from "./lang"
+import {LIFECYCLE_HOOKS} from "../../shared/constants"
+
+
+/**
+ * 选项覆盖策略是处理的功能
+ * 如果将复选项和子选项合并到最终值中
+ */
+const strats = config.optionMergeStrategies
 
 /**
  * 解决asset
@@ -195,7 +204,7 @@ export function mergeOptions(
   }
 
   /**
-   * 合并策略
+   * 合并策略，对于不同的key有不同的合并策略
    */
   function mergeField(key) {
     const strat = strats[key] || defaultStrat
@@ -204,3 +213,33 @@ export function mergeOptions(
 
   return options
 }
+
+
+function mergeHook(
+  parentVal,
+  childVal
+) {
+  const res = childVal
+    ? parentVal
+      ? parentVal.concat(childVal)
+      : Array.isArray(childVal)
+        ? childVal
+        : [childVal]
+    : parentVal
+  return res ? dedupeHooks(res) : res
+}
+
+/**
+ * 删除重复挂钩数据
+ */
+function dedupeHooks(hooks) {
+  const res = []
+  for (let i = 0; i < hooks.length; i++) {
+    res.push(hooks[i])
+  }
+  return res
+}
+
+LIFECYCLE_HOOKS.forEach(hook => {
+  strats[hook] = mergeHook
+})
