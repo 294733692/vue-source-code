@@ -1,6 +1,6 @@
 import {initRender} from "./render"
 import {initProxy} from "./proxy"
-import {initLifecycle} from "./lifecycle"
+import {callHook, initLifecycle} from "./lifecycle"
 import {extend, mergeOptions} from "../util"
 
 /**
@@ -37,6 +37,7 @@ export function initMixin(Vue) {
     initLifecycle(vm)
     initRender(vm)
 
+    callHook(vm, 'beforeCreate')
 
     // 挂载 $mount
     if (vm.$options.el) {

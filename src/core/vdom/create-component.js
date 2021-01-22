@@ -46,6 +46,8 @@ const componentVNodeHooks = {
     )
   },
 
+  // 每个组件都是在这个钩子函数里面执行`mounted`钩子函数
+  // insertedVnodeQueue的添加顺序是先子后父，mounted的执行顺序也是先子后父
   insert(vnode) {
     const {context, componentInstance} = vnode
     if (!componentInstance._isMounted) {

@@ -1,8 +1,8 @@
-import VNode, {cloneVNode} from "./vnode";
+import VNode, {cloneVNode} from "./vnode"
 import config from '../config'
-import {isDef, isRegExp, isTrue, isUndef, isPrimitive} from "../../shared/util";
-import {createComponent} from "./create-component";
-import {registerRef} from "./modules/ref";
+import {isDef, isRegExp, isTrue, isUndef, isPrimitive} from "../../shared/util"
+import {createComponent} from "./create-component"
+import {registerRef} from "./modules/ref"
 
 export const emptyNode = new VNode('', {}, [])
 
@@ -537,12 +537,13 @@ export function createPatchFunction(backend) {
   }
 
   function invokeInsertHook(vnode, queue, initial) {
-    // delay insert hooks for component root nodes, invoke them after the
-    // element is really inserted
+    // 延迟插入组价的更节点
+    // 真正插入元素后调用他们
     if (isTrue(initial) && isDef(vnode.parent)) {
       vnode.parent.data.pendingInsert = queue
     } else {
       for (let i = 0; i < queue.length; ++i) {
+        // 对于组件而言，insert方法是componentVNodeHooks.insert方法
         queue[i].data.hook.insert(queue[i])
       }
     }

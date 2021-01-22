@@ -1,5 +1,5 @@
-import {parsePath} from "../util/lang";
-import {noop} from "../../shared/util";
+import {parsePath} from "../util/lang"
+import {noop, remove} from "../../shared/util"
 
 let uid = 0
 
@@ -106,5 +106,21 @@ export default class Watcher {
    * 清除依赖集合
    */
   cleanupDeps() {
+  }
+
+  teardown() {
+    // 将自身从vm的watcher列表移除
+    // 这是一个有点昂贵的操作，所有我们跳过它
+    // 如果vm被销毁的话
+    if (this.active) {
+      if (!this.vm._isBeingDestroyed) {
+        remove(this.vm._watchers, this)
+      }
+      let i = this.deps.length
+      while (i--) {
+        this.deps[i].removeSub(this)
+      }
+      this.active = false
+    }
   }
 }

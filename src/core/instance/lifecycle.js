@@ -1,6 +1,8 @@
 import {createEmptyVNode} from "../vdom/vnode"
-import {noop} from "../../shared/util"
+import {noop, remove} from "../../shared/util"
 import Watcher from "../observer/watcher"
+import {invokeWithErrorHandling} from "../util"
+import {popTarget} from "../observer/dep"
 
 export let activeInstance = null // 为当前激活组件的vm实例
 export let isUpdatingChildComponent = false
@@ -77,6 +79,47 @@ export function lifecycleMixin(Vue) {
     }
     // 调度程序将调用更新的钩子，以确保子进程处于在父母的更新钩子中更新
   }
+
+  Vue.prototype.$destroy = function () {
+    const vm = this
+    if (vm._isBeingDestroyed) {
+      return
+    }
+    callHook(vm, 'beforeDestroy')
+    vm._isBeingDestroyed = true
+    // remove self from parent
+    const parent = vm.$parent
+    if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
+      remove(parent.$children, vm)
+    }
+    // 解除 watcher
+    if (vm._watcher) {
+      vm._watcher.teardown()
+    }
+
+    let i = vm._watcher.length
+    while (i--) {
+      vm._watchers[i].teardown()
+    }
+
+    // 从 data ob 中删除参考
+    // 冻结的对象可能没有餐开着
+    if (vm._data.__ob__) {
+      vm._data.__ob__.vmCount--
+    }
+    // 执行最后一个hook
+    vm._isDestroyed = true
+    // 在当前渲染的树上调用销毁钩子
+    vm.__patch__(vm._vnode, null)
+    // 销毁钩子
+    callHook(vm, 'destroyed')
+    // 关闭所有实例监听器
+    vm.$off()
+    // remove __vue__ reference
+    if (vm.$vnode) {
+      vm.$vnode.parent = null
+    }
+  }
 }
 
 export function mountComponent(vm, el, hydrating) {
@@ -95,6 +138,7 @@ export function mountComponent(vm, el, hydrating) {
       }
     }
   }
+  callHook(vm, 'beforeMount')
 
   let updateComponent
   updateComponent = () => {
@@ -107,12 +151,21 @@ export function mountComponent(vm, el, hydrating) {
   // 这里Watcher起到两个作用，
   // 1.在初始化的时候会执行回调函数
   // 2.当VM示例中检测到的数据发生变化的时候执行回调函数
-  new Watcher(vm, updateComponent, noop, {}, true)
+  new Watcher(vm, updateComponent, noop, {
+    before() {
+      // 如果组件已经被挂载或者是还没有被销毁的时候，在触发
+      if (vm._isMounted && !vm._isDestroyed) {
+        callHook(vm, 'beforeUpdate')
+      }
+    }
+  }, true)
   hydrating = false
 
-  if (vm.$vnode == null) { // vm.$vnode表示Vue实例的父虚拟Node，所以为null的时候，表示当前根Vue的实例
+  // vm.$vnode表示Vue实例的父虚拟Node，所以为null的时候，表示当前根Vue的实例,
+  // 为null，表示不是一次组件的初始化过程，而是我们通过 new Vue 初始化的过程
+  if (vm.$vnode == null) {
     vm.isMounted = true // 表示示例挂载了，
-    // callHook(vm, 'mounted') // 执行mounted函数
+    callHook(vm, 'mounted') // 执行mounted函数
   }
   return vm
 }
@@ -182,10 +235,18 @@ export function deactivateChildComponent(vm, direct) {
 }
 
 /**
- * 检查用户自定义钩子函数，并执行对应的钩子函数
- * @param vm
- * @param hook
+ * 调用某个生命周期钩子注册的所有回调函数
  */
 export function callHook(vm, hook) {
-
+  const handlers = vm.$options[hook]
+  const info = `${hook} hook`
+  if (handlers) {
+    for (let i = 0, j = handlers.length; i < j; i++) {
+      invokeWithErrorHandling(handlers[i], vm, null, vm, info)
+    }
+  }
+  if (vm._hasHookEvent) {
+    vm.$emit('hook:' + hook)
+  }
+  popTarget()
 }
