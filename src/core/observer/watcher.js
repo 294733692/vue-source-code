@@ -1,5 +1,6 @@
 import {parsePath} from "../util/lang"
-import {noop, remove} from "../../shared/util"
+import {isObject, noop, remove} from "../../shared/util"
+import {handleError} from "../util"
 
 let uid = 0
 
@@ -9,7 +10,7 @@ let uid = 0
 export default class Watcher {
   vm = ''
   expression = ''
-  cd = ''
+  cd
   id = ''
   deep = false
   user = false
@@ -21,7 +22,6 @@ export default class Watcher {
   // diff算法相关
   deps = []
   newDeps = []
-  deps
   depIds
   newDepIds = ''
   before = ''
@@ -106,6 +106,37 @@ export default class Watcher {
    * 清除依赖集合
    */
   cleanupDeps() {
+  }
+
+  /**
+   * 计划程序作业界面
+   * 将由调度程序调用
+   **/
+  run() {
+    if (this.active) {
+      const value = this.get()
+
+      if (
+        value !== this.value ||
+        // 即使值相同，deep watchers和 对象/数组上的观察者也应触发，
+        // 因为该值可能以发生变异
+        isObject(value) ||
+        this.deep
+      ) {
+        // 设置新的值
+        const oldValue = this.value
+        this.value = value
+        if (this.user) {
+          try {
+            this.cb.call(this.vm, value, oldValue)
+          } catch (e) {
+            handleError(e.this.vm, `callback for watcher "${this.expression}"`)
+          }
+        } else {
+          this.cb.call(this.vm, value, oldValue)
+        }
+      }
+    }
   }
 
   teardown() {

@@ -1,3 +1,6 @@
+export function handleError(err, vm, info) {
+}
+
 export function invokeWithErrorHandling(
   handler,
   context,
@@ -7,3 +10,4 @@ export function invokeWithErrorHandling(
 ) {
 
 }
+

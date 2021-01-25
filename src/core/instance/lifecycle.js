@@ -85,7 +85,7 @@ export function lifecycleMixin(Vue) {
     if (vm._isBeingDestroyed) {
       return
     }
-    callHook(vm, 'beforeDestroy')
+    callHook(vm, 'beforeDestroy') // 执行顺序，先父后子
     vm._isBeingDestroyed = true
     // remove self from parent
     const parent = vm.$parent
@@ -112,7 +112,7 @@ export function lifecycleMixin(Vue) {
     // 在当前渲染的树上调用销毁钩子
     vm.__patch__(vm._vnode, null)
     // 销毁钩子
-    callHook(vm, 'destroyed')
+    callHook(vm, 'destroyed') // 执行顺序，先子后父
     // 关闭所有实例监听器
     vm.$off()
     // remove __vue__ reference
@@ -138,7 +138,7 @@ export function mountComponent(vm, el, hydrating) {
       }
     }
   }
-  callHook(vm, 'beforeMount')
+  callHook(vm, 'beforeMount') // 执行顺序，先父后子
 
   let updateComponent
   updateComponent = () => {
@@ -191,7 +191,6 @@ export function updateChildComponent(vm, propsData, listeners, parentVnode, rend
   // 从模板编译的静态作用域插槽具有稳定的"$stable"标记
 
 }
-
 
 function isInInactiveTree(vm) {
   while (vm && (vm = vm.$parent)) {

@@ -52,7 +52,7 @@ const componentVNodeHooks = {
     const {context, componentInstance} = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
-      callHook(componentInstance, 'mounted')
+      callHook(componentInstance, 'mounted')  // 执行顺序，先子后父
     }
     if (vnode.data.keepalive) {
       if (context._isMounted) {
