@@ -2,12 +2,12 @@ import {
   isDef,
   isPrimitive,
   isTrue
-} from "../../core/util/index";
-import VNode, {createEmptyVNode} from "./vnode";
-import {normalizeChildren, simpleNormalizeChildren} from "./helpes/normalize-children";
+} from "../../core/util/index"
+import VNode, {createEmptyVNode} from "./vnode"
+import {normalizeChildren, simpleNormalizeChildren} from "./helpes/normalize-children"
 import config from '../config'
-import {resolveAsset} from "../util/options";
-import {createComponent} from "./create-component";
+import {resolveAsset} from "../util/options"
+import {createComponent} from "./create-component"
 
 const SIMPLE_NORMALIZE = 1
 const ALWAYS_NORMALIZE = 2
@@ -106,6 +106,7 @@ export function _createElement(
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'conponents', tag))) {
+      // Ctor = vm.$options.components[tag]
       // component
       // 如果是组件，创建组件VNode
       vnode = createComponent(Ctor, data, context, children, tag)

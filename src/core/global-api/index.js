@@ -2,6 +2,7 @@ import {initExtend} from "./extend"
 import {ASSET_TYPES} from "../../shared/constants"
 import {extend} from "../../shared/util"
 import buildInComponents from '../components/index'
+import {initAssetRegisters} from "./assets"
 
 
 export function initGlobalAPI(Vue) {
@@ -20,4 +21,5 @@ export function initGlobalAPI(Vue) {
   extend(Vue.options.components, buildInComponents)
 
   initExtend(Vue)
+  initAssetRegisters(Vue)
 }

@@ -33,12 +33,16 @@ export function resolveAsset(
 
   const assets = options[type]
   // 首先检查本地注册变化
+  // 如果Id存在，直接使用id拿
   if (hasOwn(assets, id)) return assets[id]
+  // 如果id不存在，把id变为驼峰形式在拿
   const camelizedId = camelize(id)
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+  // 在驼峰的形式上，将首字母大写在拿
+  // ==== 这也解释了全局注册组件的时候，id可以是连字符、驼峰或首字母大写 =======
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
-  // 退回原型链
+  // 退回原型链去查找
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     console.error(
