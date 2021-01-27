@@ -80,6 +80,13 @@ export function lifecycleMixin(Vue) {
     // 调度程序将调用更新的钩子，以确保子进程处于在父母的更新钩子中更新
   }
 
+  Vue.prototype.$forceUpdate = function () {
+    const vm = this
+    if (vm._watcher) {
+      vm._watcher.update()
+    }
+  }
+
   Vue.prototype.$destroy = function () {
     const vm = this
     if (vm._isBeingDestroyed) {

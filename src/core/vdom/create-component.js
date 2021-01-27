@@ -109,7 +109,7 @@ export function createComponent(
     return
   }
 
-  // 异步组件
+  // 异步组件,没有cid
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor

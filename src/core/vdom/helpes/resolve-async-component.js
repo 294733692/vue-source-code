@@ -1,7 +1,15 @@
-import {hasSymbol, once, isDef, isObject, isTrue, remove, isUndef, isPromise} from "../../../core/util/index";
-import {createEmptyVNode} from "../vnode";
-import {currentRenderingInstance} from "../../instance/render";
-
+import {
+  hasSymbol,
+  once,
+  isDef,
+  isObject,
+  isTrue,
+  remove,
+  isUndef,
+  isPromise
+} from "../../../core/util/index"
+import {createEmptyVNode} from "../vnode"
+import {currentRenderingInstance} from "../../instance/render"
 
 function ensureCtor(comp, base) {
   if (
@@ -28,7 +36,11 @@ export function createAsyncPlaceholder(
   return node
 }
 
-
+/**
+ * 解析异步组件
+ * @param factory 工厂函数
+ * @param baseCtor Vue
+ */
 export function resolveAsyncComponent(
   factory,
   baseCtor
@@ -154,5 +166,4 @@ export function resolveAsyncComponent(
       ? factory.loadingComp
       : factory.resolved
   }
-
 }
