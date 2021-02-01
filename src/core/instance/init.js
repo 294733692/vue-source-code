@@ -2,6 +2,7 @@ import {initRender} from "./render"
 import {initProxy} from "./proxy"
 import {callHook, initLifecycle} from "./lifecycle"
 import {extend, mergeOptions} from "../util"
+import {initState} from "./state"
 
 /**
  * Vue初始化混合操作
@@ -38,6 +39,7 @@ export function initMixin(Vue) {
     initRender(vm)
 
     callHook(vm, 'beforeCreate')
+    initState(vm)
 
     // 挂载 $mount
     if (vm.$options.el) {
