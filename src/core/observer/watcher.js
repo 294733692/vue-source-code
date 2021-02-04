@@ -1,6 +1,8 @@
 import {parsePath} from "../util/lang"
 import {isObject, noop, remove} from "../../shared/util"
 import {handleError} from "../util"
+import {popTarget, pushTarget} from "./dep"
+import {traverse} from "./traverse"
 
 let uid = 0
 
@@ -30,10 +32,10 @@ export default class Watcher {
 
   constructor(
     vm,
-    expOrFn, // 表达式或者是方法
+    expOrFn, // 表达式或者是方法，要watch的属性
     cb, // 回调
     options, // 配置参数
-    isRenderWatcher // 是否是渲染watcher
+    isRenderWatcher // 是否是渲染watcher,vue初始化的时候，默认为true
   ) {
     this.vm = vm
     if (isRenderWatcher) {
@@ -83,9 +85,15 @@ export default class Watcher {
    * 重新收集依赖关系
    */
   get() {
+    // 将当前的watcher实例赋值为Dep.target
+    // 也就是说。执行了这pushTarget(this)，Dep.target当前的值就是watcher实例
+    // 并将Dep.target入栈，存入targetStack数组中
+    pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 获取到vm实例某个属性的初始值
+      // 如果是初始化的时候，传入的updateComponent函数，这个时候会返回undefined
       value = this.getter.call(vm, vm)  // 这里实际执行的lifecycle => updateComponent方法
     } catch (e) {
       if (this.user) {
@@ -95,17 +103,48 @@ export default class Watcher {
       }
     } finally {
       if (this.deep) {
-        // traverse(value)
+        traverse(value)
       }
+      // 出栈
+      popTarget()
       this.cleanupDeps()
     }
     return value
   }
 
   /**
+   * 向此指令添加依赖项
+   */
+  addDep(dep) {
+    const id = dep.id
+    // 保证同一数据不会被添加多次
+    if (!this.newDepIds.has(id)) {
+      this.newDeps.push(dep)
+      if (!this.depIds.has(id)) {
+        dep.addSub(this)
+      }
+    }
+  }
+
+  /**
    * 清除依赖集合
    */
   cleanupDeps() {
+    let i = this.deps.length
+    while (i--) {
+      const dep = this.deps[i]
+      if (!this.newDepIds.has(dep.id)) {
+        dep.removeSub(this)
+      }
+    }
+    let temp = this.depIds
+    this.depIds = this.newDepIds
+    this.newDepIds = temp
+    this.newDepIds.clear()
+    temp = this.deps
+    this.deps = this.newDepIds
+    this.newDeps = temp
+    this.newDeps.length = 0
   }
 
   /**

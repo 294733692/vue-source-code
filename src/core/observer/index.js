@@ -109,6 +109,9 @@ export function observe(value, asRootData) {
   return ob
 }
 
+/**
+ * 在对象上的定义reactive
+ */
 export function defineReactive(
   obj,
   key,
@@ -126,19 +129,46 @@ export function defineReactive(
     return
   }
 
+  // 保存property独享的get和set函数
   const getter = property && property.get
   const setter = property && property.set
+  // 当值传递了两个参数的时候,说明没有传递第三个参数val
   if ((!getter || setter) && arguments.length === 2) {
+    // 那么这个时候需要根据key主动去获取相依的值
     val = obj[key]
   }
 
   let childOb = !shallow && observe(val)
+  // 重新定义了getter和setter方法,覆盖原的get和set方法
+  // 上面将原有方法get和set缓存,并在重新定义的get和set方法中调用缓存的get和set函数
+  // 这样做到了不影响原有属性的读写
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
+    // 触发get方法,完成依赖收集
     get: function reactiveGetter() {
+      // 判断getter函数是否存在，是就直接调用该函数，没有就返回val
+      const value = getter ? getter.call(obj) : val
+      // 依赖收集
+      // target是Dep类里面的静态属性，用于保存要收集的依赖(Watcher)
+      if (Dep.target) {
+        // 通过dep的depend方法，将依赖收集到dep中
+        dep.depend()
+        if (childOb) {
+          // 如果存在childOb，递归调用depend，添加依赖收集
+          childOb.dep.depend()
+          if (Array.isArray(value)) {
+            dependArray(value)
+          }
+        }
+      }
     },
     set: function reactiveSetter(newVal) {
     }
   })
+}
+
+
+function dependArray() {
+
 }
