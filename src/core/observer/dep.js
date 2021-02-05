@@ -37,6 +37,9 @@ export default class Dep {
     }
   }
 
+  /**
+   * 通知watcher进行更新
+   */
   notify() {
     const subs = this.subs.slice()
     if (process.env.NODE_ENV !== 'production' && !config.async) {

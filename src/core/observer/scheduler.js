@@ -2,11 +2,15 @@ import Watcher from './watcher'
 import config from '../config'
 import {activateChildComponent, callHook} from "../instance/lifecycle"
 import {devtools} from "../util"
+import {nextTick} from "../util/next-tick"
 
 export const MAX_UPDATE_COUNT = 100
 
+// 存放整个watcher数组
 const queue = []
 const activatedChildren = []
+// 保存Watcher，用于判断watcher是否存在
+//
 let has = {}
 let circular = {}
 let waiting = false
@@ -53,11 +57,14 @@ function flushSchedulerQueue() {
 
   // 刷新前对队列进行排序，这样可以确保：
   // 1、组件从父级更新为子级。（因为parent 总是在 children 之前创立）
+  //    因为父组件的创建过程要先于子组件，所以Watcher的创建过程也是先父后子，执行顺序先父后子
   // 2、组件的用户监视程序在其呈现监视程序之前运行（因为用户观察者先于渲染观察者创建）
   // 3、如果在父组件的观察者运行期间破坏了某个组件，它的观察者可以被跳过
   queue.sort((a, b) => a.id - b.id)
 
   // 不缓存长度，因为当我们运行现有观察者时，可能会推入更多的观察者
+  // 主要注意的是，这里的queue.length长度有可能会在执行watcher.run的时候会发生改变
+  // 如果在watcher.run的过程中，又执行了queueWatcher
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
@@ -97,6 +104,10 @@ function flushSchedulerQueue() {
   }
 }
 
+/**
+ * 执行update钩子
+ * @param queue
+ */
 function callUpdateHooks(queue) {
   let i = queue.length
   while (i--) {
@@ -108,10 +119,37 @@ function callUpdateHooks(queue) {
   }
 }
 
-
 function callActivatedHooks(queue) {
   for (let i = 0; i < queue.length; i++) {
     queue[i]._inavtive = true
     activateChildComponent(queue[i], true /* true */)
+  }
+}
+
+/**
+ * 添加一个观察者到观察者队列。
+ * 除非刷新队列是将其推送，否则具有重复ids的作业将被跳过
+ */
+export function queueWatcher(watcher) {
+  const id = watcher.id
+  if (has[id] == null) { // 如果之前watcher不存在
+    has[id] = true
+    if (!flushing) {
+      queue.push(watcher)
+    } else {
+      let i = queue.length - 1
+      while (i > index && queue[i].id > watcher.id) {
+        i--
+      }
+      queue.splice(i + 1, 0, watcher)
+    }
+    if (!waiting) {
+      waiting = true
+      if (process.env.NODE_ENV !== 'production' && !config.async) {
+        flushSchedulerQueue()
+        return
+      }
+      nextTick(flushSchedulerQueue)
+    }
   }
 }

@@ -3,6 +3,7 @@ import {isObject, noop, remove} from "../../shared/util"
 import {handleError} from "../util"
 import {popTarget, pushTarget} from "./dep"
 import {traverse} from "./traverse"
+import {queueWatcher} from "./scheduler"
 
 let uid = 0
 
@@ -148,6 +149,19 @@ export default class Watcher {
   }
 
   /**
+   * 依赖项更改是被调用
+   */
+  update() {
+    if (this.lazy) {
+      this.dirty = true
+    } else if (this.sync) {
+      this.run()
+    } else {
+      queueWatcher(this)
+    }
+  }
+
+  /**
    * 计划程序作业界面
    * 将由调度程序调用
    **/
@@ -160,6 +174,7 @@ export default class Watcher {
         // 即使值相同，deep watchers和 对象/数组上的观察者也应触发，
         // 因为该值可能以发生变异
         isObject(value) ||
+        // 深度watcher的值
         this.deep
       ) {
         // 设置新的值

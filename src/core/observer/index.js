@@ -76,7 +76,6 @@ function copyAugment(target, src, keys) {
   }
 }
 
-
 export function observe(value, asRootData) {
   // 如果观测数据不是一个对象或者是一个VNode实例，直接return
   if (!isObject(value) || value instanceof VNode) {
@@ -164,10 +163,30 @@ export function defineReactive(
       }
     },
     set: function reactiveSetter(newVal) {
+      // 判断getter是否存在，存在返回值，不存在直接返回val
+      const value = getter ? getter.call(obj) : val
+      // 判断新旧值是否相等 || 新值不等新值 && 旧值不等于旧值
+      if (newVal === value || (newVal !== newVal && value !== value)) {
+        return
+      }
+      // customSetter函数判断（作用：用来打印赋值属性）
+      if (process.env.NODE_ENV !== 'production' && customSetter) {
+        customSetter()
+      }
+      if (getter && !setter) return
+      if (setter) {
+        // 设置正确属性
+        setter.call(obj, newVal)
+      } else {
+        val = newVal
+      }
+      // 如果shallow为false，会把新设置的值变成一个响应式对象
+      childOb = !shallow && observe(newVal)
+      // 通知所有watcher（订阅者）,执行update,更新数据
+      dep.notify()
     }
   })
 }
-
 
 function dependArray() {
 
