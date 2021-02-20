@@ -167,8 +167,8 @@ export default class Watcher {
    **/
   run() {
     if (this.active) {
+      // 获取到新值，这里的this.get()执行，就是Dep.target = Watcher
       const value = this.get()
-
       if (
         value !== this.value ||
         // 即使值相同，deep watchers和 对象/数组上的观察者也应触发，
@@ -180,6 +180,7 @@ export default class Watcher {
         // 设置新的值
         const oldValue = this.value
         this.value = value
+        // 如果是user watcher
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)
