@@ -3,6 +3,7 @@ import {resolveSlots} from "./render-helpers/resolve-slots"
 import {emptyObject} from "../util/index"
 import {createElement} from "../vdom/create-element"
 import {normalizeScopedSlots} from "../vdom/helpes/normalize-scoped-slots"
+import {nextTick} from "../util/next-tick"
 
 export let currentRenderingInstance
 
@@ -27,6 +28,10 @@ export function initRender(vm) {
  * Render混合操作，初始化
  */
 export function renderMixin(Vue) {
+
+  Vue.prototype.$nextTick = function (fn) {
+    return nextTick(fn, this)
+  }
   Vue.prototype._render = function () {
     const vm = this
     const {render, _parentVnode} = vm.$options

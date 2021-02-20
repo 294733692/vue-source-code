@@ -1,12 +1,25 @@
 import {initExtend} from "./extend"
 import {ASSET_TYPES} from "../../shared/constants"
-import {extend} from "../../shared/util"
 import buildInComponents from '../components/index'
 import {initAssetRegisters} from "./assets"
 
+import {
+  warn,
+  extend,
+  nextTick,
+  mergeOptions,
+  defineReactive
+} from '../util/index'
 
 export function initGlobalAPI(Vue) {
 
+  Vue.util = {
+    warn,
+    extend,
+    mergeOptions,
+    defineReactive
+  }
+  Vue.nextTick = nextTick
 
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
